@@ -1,6 +1,5 @@
 import CategoryItem from "../category-item/category_item_component";
 import "./directory_styles.scss";
-
 const Directory = ({ categories }) => {
 	return (
 		<div className="categories-container">
@@ -12,3 +11,4 @@ const Directory = ({ categories }) => {
 };
 
 export default Directory;
+
