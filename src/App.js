@@ -10,7 +10,9 @@ const App = () => {
 		<Routes>
 			<Route path="/" element={<Navigation />}>
 				<Route index element={<Home />} />
-				<Route path="shop" element={<Shop />} />
+
+				{/* If the url has .../shop with children of any routes" => this will render the Shop */}
+				<Route path="shop/*" element={<Shop />} />
 				<Route path="auth" element={<Authentication />} />
 				<Route path="checkout" element={<Checkout />} />
 			</Route>

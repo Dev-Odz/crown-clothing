@@ -10,7 +10,16 @@ import {
 	onAuthStateChanged,
 } from "firebase/auth";
 
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+	getFirestore,
+	doc,
+	getDoc,
+	setDoc,
+	collection,
+	writeBatch,
+	query,
+	getDocs,
+} from "firebase/firestore";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyBTl66BeItNYY9zGDSMVHPnaPPAQjC-bL0",
@@ -38,6 +47,42 @@ export const signInWithGoogleRedirect = () =>
 // Get FireStore Instance
 export const db = getFirestore();
 
+// In order to save a collection in the firestore, you need to pass a collection key (per object) and the objects to be stored
+export const addCollectionAndDocuments = async (
+	collectionKey,
+	objectsToAdd
+) => {
+	const collectionRef = collection(db, collectionKey);
+	const batch = writeBatch(db);
+
+	objectsToAdd.forEach((object) => {
+		const docRef = doc(collectionRef, object.title.toLowerCase());
+		batch.set(docRef, object);
+	});
+
+	await batch.commit();
+	console.log("done");
+};
+
+export const getCollectionAndDocuments = async () => {
+	const collectionRef = collection(db, "categories");
+
+	const q = query(collectionRef);
+
+	const querySnapshot = await getDocs(q);
+
+	const categoryMap = querySnapshot.docs.reduce((acc, docSnapShot) => {
+		const { title, items } = docSnapShot.data();
+
+		acc[title.toLowerCase()] = items;
+		return acc;
+	}, {});
+
+	console.log("categoryMap", typeof categoryMap);
+
+	return categoryMap;
+};
+
 // Create User Document From Auth
 export const createUserDocumentFromAuth = async (
 	userAuth,
@@ -57,9 +102,6 @@ export const createUserDocumentFromAuth = async (
 	// if user data does not exist
 	// create / set the document with the data from userAuth in my collection
 
-	// if user data does exist
-	// return userDocRef
-
 	if (!userSnapshot.exists()) {
 		const { displayName, email } = userAuth;
 		const createdAt = new Date();
@@ -74,6 +116,9 @@ export const createUserDocumentFromAuth = async (
 			console.log("error creating the user", error.message);
 		}
 	}
+
+	// if user data does exist
+	// return userDocRef
 
 	return userDocRef;
 };
@@ -94,8 +139,9 @@ export const signInUserWithEmailAndPassword = async (email, password) => {
 	return response;
 };
 
-export const signOutUser = async() => {
+export const signOutUser = async () => {
 	await signOut(auth);
 };
 
-export const onAuthStateChangedListener = (callBack) => onAuthStateChanged(auth, callBack)
+export const onAuthStateChangedListener = (callBack) =>
+	onAuthStateChanged(auth, callBack);
