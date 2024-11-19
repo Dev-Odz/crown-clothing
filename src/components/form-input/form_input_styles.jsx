@@ -9,9 +9,6 @@ const shrinkLabelStyles = css`
 	color: ${mainColor};
 `;
 
-const passwordStyle = css`
-	letter-spacing: 0.3em;
-`;
 
 export const FormInputLabel = styled.label`
 	color: ${subColor};
