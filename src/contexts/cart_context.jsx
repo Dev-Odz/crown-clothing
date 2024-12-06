@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useReducer } from "react";
 
 const addCartItem = (cartItems, productToAdd) => {
 	// find if cartItems contains productToAdd
@@ -57,18 +57,122 @@ export const CartContext = createContext({
 	cartTotal: 0,
 });
 
+const INITIAL_STATE = {
+	isCartOpen: false,
+	cartItems: [],
+	itemTotalCount: 0,
+	cartTotal: 0,
+};
+
+const CART_ACTION_TYPES = {
+	SET_CART_OPEN: "SET_CART_OPEN",
+	ADD_ITEM_TO_CART: "ADD_ITEM_TO_CART",
+	REDUCE_ITEM_TO_CART: "REDUCE_ITEM_TO_CART",
+	REMOVE_ITEM_TO_CART: "REMOVE_ITEM_TO_CART",
+	SET_ITEM_TOTAL_COUNT: "SET_ITEM_TOTAL_COUNT",
+	SET_CART_TOTAL: "SET_CART_TOTAL",
+};
+
+const cartReducer = (state, action) => {
+	const { type, payload } = action;
+
+	console.log(type);
+
+	switch (type) {
+		case "SET_CART_OPEN":
+			return {
+				isCartOpen: payload,
+			};
+
+		case "ADD_ITEM_TO_CART":
+			return {
+				cartItems: payload,
+			};
+		case "REDUCE_ITEM_TO_CART":
+			return {
+				cartItems: payload,
+			};
+		case "REMOVE_ITEM_TO_CART":
+			return {
+				cartItems: payload,
+			};
+		case "SET_ITEM_TOTAL_COUNT":
+			return {
+				itemTotalCount: payload,
+			};
+		case "SET_CART_TOTAL":
+			return {
+				cartTotal: payload,
+			};
+
+		default:
+			break;
+	}
+};
+
 const CartProvider = ({ children }) => {
-	const [isCartOpen, setIsCartOpen] = useState(false);
-	const [cartItems, setCartItems] = useState([]);
-	const [itemTotalCount, setItemTotalCount] = useState(0);
-	const [cartTotal, setCartTotal] = useState(0);
+	// const [isCartOpen, setIsCartOpen] = useState(false);
+	// const [cartItems, setCartItems] = useState([]);
+	// const [itemTotalCount, setItemTotalCount] = useState(0);
+	// const [cartTotal, setCartTotal] = useState(0);
+
+	/**Cart useReducers */
+	const [{ isCartOpen }, dispatchIsCartOpen] = useReducer(
+		cartReducer,
+		INITIAL_STATE
+	);
+	const [{ cartItems }, dispatchCartItems] = useReducer(
+		cartReducer,
+		INITIAL_STATE
+	);
+	const [{ itemTotalCount }, dispatchItemTotalCount] = useReducer(
+		cartReducer,
+		INITIAL_STATE
+	);
+	const [{ cartTotal }, dispatchCartTotal] = useReducer(
+		cartReducer,
+		INITIAL_STATE
+	);
+
+	/**useReducer's dispatcher */
+	const setIsCartOpen = (value) => {
+		dispatchIsCartOpen({
+			type: CART_ACTION_TYPES.SET_CART_OPEN,
+			payload: value,
+		});
+	};
+
+	const addItemToCart = (productToAdd) => {
+		dispatchCartItems({
+			type: CART_ACTION_TYPES.ADD_ITEM_TO_CART,
+			payload: addCartItem(cartItems, productToAdd),
+		});
+	};
+
+	const reduceItemToCart = (productToReduce) => {
+		dispatchCartItems({
+			type: CART_ACTION_TYPES.REDUCE_ITEM_TO_CART,
+			payload: reduceCartItem(cartItems, productToReduce),
+		});
+	};
+
+	const removeItemToCart = (productToRemove) => {
+		dispatchCartItems({
+			type: CART_ACTION_TYPES.REMOVE_ITEM_TO_CART,
+			payload: removeCartItem(cartItems, productToRemove),
+		});
+	};
 
 	useEffect(() => {
 		const newCartCount = cartItems.reduce(
 			(total, cartItem) => total + cartItem.quantity,
 			0
 		);
-		setItemTotalCount(newCartCount);
+
+		dispatchItemTotalCount({
+			type: CART_ACTION_TYPES.SET_ITEM_TOTAL_COUNT,
+			payload: newCartCount,
+		});
 	}, [cartItems]);
 
 	useEffect(() => {
@@ -76,20 +180,11 @@ const CartProvider = ({ children }) => {
 			(total, cartItem) => total + cartItem.quantity * cartItem.price,
 			0
 		);
-		setCartTotal(newCartTotal);
+		dispatchCartTotal({
+			type: CART_ACTION_TYPES.SET_CART_TOTAL,
+			payload: newCartTotal,
+		});
 	}, [cartItems]);
-
-	const addItemToCart = (productToAdd) => {
-		setCartItems(addCartItem(cartItems, productToAdd));
-	};
-
-	const reduceItemToCart = (productToReduce) => {
-		setCartItems(reduceCartItem(cartItems, productToReduce));
-	};
-
-	const removeItemToCart = (productToRemove) => {
-		setCartItems(removeCartItem(cartItems, productToRemove));
-	};
 
 	const value = {
 		isCartOpen,
@@ -99,7 +194,6 @@ const CartProvider = ({ children }) => {
 		reduceItemToCart,
 		removeItemToCart,
 		itemTotalCount,
-		setItemTotalCount,
 		cartTotal,
 	};
 
